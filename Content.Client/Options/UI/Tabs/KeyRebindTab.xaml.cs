@@ -1,5 +1,6 @@
 using System.Numerics;
 using Content.Client.Stylesheets;
+using Content.Shared._CMU14.Input;
 using Content.Shared._RMC14.Input;
 using Content.Shared.CCVar;
 using Content.Shared.Input;
@@ -181,6 +182,10 @@ namespace Content.Client.Options.UI.Tabs
             AddButton(CMKeyFunctions.RMCRest);
             AddButton(CMKeyFunctions.RMCResist);
 
+            AddHeader("ui-options-header-cmu-medical");
+            AddButton(CMUKeyFunctions.CMUCycleBodyZoneTarget);
+            AddButton(CMUKeyFunctions.CMUCycleBodyZoneTargetReverse);
+
             AddHeader("ui-options-header-rmc-xeno");
             AddButton(CMKeyFunctions.CMXenoWideSwing);
             AddButton(CMKeyFunctions.RMCXenoRest);
@@ -225,6 +230,14 @@ namespace Content.Client.Options.UI.Tabs
             AddHeader("ui-options-header-interaction-adv");
             AddButton(ContentKeyFunctions.SmartEquipBackpack);
             AddButton(ContentKeyFunctions.SmartEquipBelt);
+            AddButton(ContentKeyFunctions.SmartEquipPocket1);
+            AddButton(ContentKeyFunctions.SmartEquipPocket2);
+            AddButton(ContentKeyFunctions.SmartEquipSuitStorage);
+            //RMC14
+            AddButton(ContentKeyFunctions.SmartEquipUniform);
+            AddButton(ContentKeyFunctions.SmartEquipArmor);
+            AddButton(ContentKeyFunctions.SmartEquipHelmet);
+            //RMC14
             AddButton(ContentKeyFunctions.OpenBackpack);
             AddButton(ContentKeyFunctions.OpenBelt);
             AddButton(ContentKeyFunctions.ThrowItemInHand);

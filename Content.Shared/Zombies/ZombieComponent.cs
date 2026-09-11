@@ -20,14 +20,14 @@ public sealed partial class ZombieComponent : Component
     /// The baseline infection chance you have if you have no protective gear
     /// </summary>
     [ViewVariables(VVAccess.ReadWrite)]
-    public float BaseZombieInfectionChance = 0.75f;
+    public float BaseZombieInfectionChance = 0f;
 
     /// <summary>
     /// The minimum infection chance possible. This is simply to prevent
     /// being overly protected by bundling up.
     /// </summary>
     [ViewVariables(VVAccess.ReadWrite)]
-    public float MinZombieInfectionChance = 0.05f;
+    public float MinZombieInfectionChance = 0f;
 
     /// <summary>
     /// How effective each resistance type on a piece of armor is. Using a damage specifier for this seems illegal.
@@ -39,6 +39,8 @@ public sealed partial class ZombieComponent : Component
             {"Slash", 0.5},
             {"Piercing", 0.3},
             {"Blunt", 0.1},
+            {"Asphyxiation", 0},
+            {"Bloodloss", 0}
         }
     };
 
@@ -134,9 +136,9 @@ public sealed partial class ZombieComponent : Component
     {
         DamageDict = new()
         {
-            { "Blunt", -2 },
-            { "Slash", -2 },
-            { "Piercing", -2 }
+            { "Blunt", 0 },
+            { "Slash", 0 },
+            { "Piercing", 0 }
         }
     };
 
@@ -148,7 +150,7 @@ public sealed partial class ZombieComponent : Component
     {
         DamageDict = new()
         {
-            { "Slash", 13 },
+            { "Slash", 25 }, // RNMC
             { "Piercing", 7 },
             { "Structural", 10 }
         }
@@ -177,4 +179,19 @@ public sealed partial class ZombieComponent : Component
     /// </summary>
     [DataField("newBloodReagent", customTypeSerializer: typeof(PrototypeIdSerializer<ReagentPrototype>))]
     public string NewBloodReagent = "ZombieBlood";
+
+    [DataField]
+    public TimeSpan LastDiedAt; // RNMC14
+
+    [DataField]
+    public TimeSpan ReviveGraceTime = TimeSpan.FromSeconds(60); // RNMC14
+
+    [DataField]
+    public TimeSpan DespawnTime = TimeSpan.FromSeconds(180); // RNMC14
+
+    [DataField]
+    public TimeSpan LastHit; // RNMC14
+
+    [DataField]
+    public TimeSpan NoRegenOnHitTime = TimeSpan.FromSeconds(2); // RNMC14
 }

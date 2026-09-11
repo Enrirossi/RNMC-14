@@ -104,10 +104,13 @@ public sealed partial class HardpointSlot
     public float RemoveDelay { get; set; } = -1f;
 
     [DataField]
+    public bool DisableEject { get; set; }
+
+    [DataField]
     public EntityWhitelist? Whitelist { get; set; }
 }
 
-[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState(true)]
 public sealed partial class HardpointIntegrityComponent : Component
 {
     [DataField]
@@ -220,6 +223,11 @@ public sealed partial class HardpointRepairDoAfterEvent : DoAfterEvent
     }
 }
 
+[ByRefEvent]
 public readonly record struct HardpointSlotsChangedEvent(EntityUid Vehicle);
 
+[ByRefEvent]
+public readonly record struct HardpointIntegrityChangedEvent;
+
+[ByRefEvent]
 public readonly record struct VehicleFrameIntegrityChangedEvent(EntityUid Vehicle, bool Intact);

@@ -17,7 +17,7 @@ public sealed partial class CMDistressSignalRuleComponent : Component
     public List<EntProtoId> SquadIds = new() { "SquadAlpha", "SquadBravo", "SquadCharlie", "SquadDelta" };
 
     [DataField]
-    public List<EntProtoId> ExtraSquadIds = new() { "SquadIntel", "SquadFORECON" };
+    public List<EntProtoId> ExtraSquadIds = new() { "SquadIntel", "SquadFORECON", "SquadSunRiders", "SquadRedDawn", "SquadPMCOmega", "SquadPMCTheta" }; // RNMC14
 
     [DataField]
     public Dictionary<EntProtoId, EntityUid> Squads = new();
@@ -366,7 +366,7 @@ public sealed partial class CMDistressSignalRuleComponent : Component
     public bool DoJobSlotScaling = true;
 
     [DataField]
-    public bool AutoEnd = false;
+    public bool AutoEnd = true;
 
     [DataField]
     public bool StartARESAnnouncements = false;

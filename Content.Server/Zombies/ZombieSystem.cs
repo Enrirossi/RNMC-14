@@ -1,33 +1,37 @@
-using System.Linq;
-using Content.Shared.NPC.Prototypes;
 using Content.Server.Actions;
 using Content.Server.Body.Systems;
 using Content.Server.Chat;
 using Content.Server.Chat.Systems;
 using Content.Server.Emoting.Systems;
 using Content.Server.GameTicking.Rules.Components;
-using Content.Server.Speech.EntitySystems;
 using Content.Server.Roles;
+using Content.Server.Speech.EntitySystems;
+using Content.Shared._CMU14.Medical.BodyPart;
+using Content.Shared._RMC14.Atmos; // RMC14
 using Content.Shared.Anomaly.Components;
 using Content.Shared.Armor;
 using Content.Shared.Bed.Sleep;
+using Content.Shared.Body.Systems; // RNMC14
 using Content.Shared.Cloning.Events;
 using Content.Shared.Damage;
 using Content.Shared.Humanoid;
 using Content.Shared.Inventory;
+using Content.Shared.Jittering; // RNMC14
 using Content.Shared.Mind;
 using Content.Shared.Mind.Components;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
+using Content.Shared.NPC.Prototypes;
 using Content.Shared.Popups;
 using Content.Shared.Roles;
 using Content.Shared.Weapons.Melee.Events;
 using Content.Shared.Zombies;
-using Content.Shared._RMC14.Atmos; // RMC14
+using NetCord.Gateway;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 using Robust.Shared.Timing;
+using System.Linq;
 
 namespace Content.Server.Zombies
 {
@@ -46,6 +50,11 @@ namespace Content.Server.Zombies
         [Dependency] private readonly SharedPopupSystem _popup = default!;
         [Dependency] private readonly SharedRoleSystem _role = default!;
         [Dependency] private readonly SharedRMCFlammableSystem _rmcFlammable = default!; // RMC14
+        [Dependency] private readonly SharedBodySystem _body = default!; // RNMC14
+        [Dependency] private readonly MobThresholdSystem _mobThresholds = default!; // RNMC14
+        [Dependency] private readonly SharedBodyPartHealthSystem _partHealth = default!; // RNMC14
+        [Dependency] private readonly IEntityManager _entMan = default!; // RNMC14
+        [Dependency] private readonly SharedJitteringSystem _jitter = default!; // RNMC14
 
         public readonly ProtoId<NpcFactionPrototype> Faction = "Zombie";
 
@@ -82,6 +91,8 @@ namespace Content.Server.Zombies
             SubscribeLocalEvent<IncurableZombieComponent, MapInitEvent>(OnPendingMapInit);
 
             SubscribeLocalEvent<ZombifyOnDeathComponent, MobStateChangedEvent>(OnDamageChanged);
+
+            SubscribeLocalEvent<ZombieComponent, DamageChangedEvent>(OnDamage); // RNMC14
         }
 
         private void OnBeforeRemoveAnomalyOnDeath(Entity<PendingZombieComponent> ent, ref BeforeRemoveAnomalyOnDeathEvent args)
@@ -127,7 +138,7 @@ namespace Content.Server.Zombies
                 // rnmc start
                 if (HasComp<ZombieComponent>(uid))
                     continue;
-                // rnmmc end
+                // rnmc end
 
                 // Process only once per second
                 if (comp.NextTick > curTime)
@@ -142,7 +153,7 @@ namespace Content.Server.Zombies
                 if (_random.Prob(comp.InfectionWarningChance))
                     _popup.PopupEntity(Loc.GetString(_random.Pick(comp.InfectionWarnings)), uid, uid);
 
-                var multiplier = _mobState.IsCritical(uid, mobState)
+                var multiplier = _mobState.IsCritical(uid, mobState) && _body.BodyHasPartType(uid, Shared.Body.Part.BodyPartType.Head) // RNMC14
                     ? comp.CritDamageMultiplier
                     : 1f;
 
@@ -150,8 +161,8 @@ namespace Content.Server.Zombies
             }
 
             // Heal the zombified
-            var zombQuery = EntityQueryEnumerator<ZombieComponent, DamageableComponent, MobStateComponent>();
-            while (zombQuery.MoveNext(out var uid, out var comp, out var damage, out var mobState))
+            var zombQuery = EntityQueryEnumerator<ZombieComponent, DamageableComponent, MobStateComponent, MobThresholdsComponent>();
+            while (zombQuery.MoveNext(out var uid, out var comp, out var damage, out var mobState, out var mobThresholds))
             {
                 // Process only once per second
                 if (comp.NextTick + TimeSpan.FromSeconds(1) > curTime)
@@ -159,7 +170,31 @@ namespace Content.Server.Zombies
 
                 comp.NextTick = curTime;
 
-                if (_mobState.IsDead(uid, mobState))
+                if (_mobState.IsDead(uid, mobState) && comp.LastDiedAt + comp.ReviveGraceTime <= _timing.CurTime && _body.BodyHasPartType(uid, Shared.Body.Part.BodyPartType.Head))
+                {
+                    foreach (var (partId, partComp) in _body.GetBodyChildren(uid))
+                    {
+                        if (TryComp<BodyPartHealthComponent>(partId, out var health))
+                            _partHealth.SetCurrent((partId, health), health.Max);
+                    }
+                    _damageable.SetAllDamage(uid, damage, 0);
+                    _mobState.ChangeMobState(uid, MobState.Alive);
+                    _jitter.DoJitter(uid, TimeSpan.FromSeconds(2), false);
+                }
+
+                if (_mobState.IsDead(uid, mobState) && comp.LastDiedAt + comp.DespawnTime <= _timing.CurTime)
+                {
+                    _inventory.TryUnequip(uid, "pocket1", force: true);
+                    _inventory.TryUnequip(uid, "pocket2", force: true);
+                    _inventory.TryUnequip(uid, "back", force: true);
+                    _inventory.TryUnequip(uid, "suitstorage", force: true);
+                    _inventory.TryUnequip(uid, "belt", force: true);
+                    _inventory.TryUnequip(uid, "shoes", force: true);
+                    _inventory.TryUnequip(uid, "gloves", force: true);
+                    _entMan.DeleteEntity(uid);
+                }
+
+                if (_mobState.IsDead(uid, mobState)) // RNMC14
                     continue;
 
                 var multiplier = _mobState.IsCritical(uid, mobState)
@@ -171,7 +206,10 @@ namespace Content.Server.Zombies
                     return;
 
                 // Gradual healing for living zombies.
-                _damageable.TryChangeDamage(uid, comp.PassiveHealing * multiplier, true, false, damage);
+                if (_timing.CurTime > comp.LastHit + comp.NoRegenOnHitTime)
+                    _damageable.TryChangeDamage(uid, comp.PassiveHealing * multiplier, true, false, damage);
+
+                _mobThresholds.TryGetDeadThreshold(uid, out var deadThreshold);
             }
         }
 
@@ -225,6 +263,9 @@ namespace Content.Server.Zombies
                 // Stop random groaning
                 _autoEmote.RemoveEmote(uid, "ZombieGroan");
             }
+
+            if (args.NewMobState == MobState.Dead)
+                component.LastDiedAt = _timing.CurTime;
         }
 
         private float GetZombieInfectionChance(EntityUid uid, ZombieComponent zombieComponent)
@@ -344,5 +385,11 @@ namespace Content.Server.Zombies
         {
             _role.MindRemoveRole<ZombieRoleComponent>((args.Mind.Owner,  args.Mind.Comp));
         }
+
+        private void OnDamage(EntityUid uid, ZombieComponent component, ref DamageChangedEvent args) // RNMC14
+        {
+            component.LastHit = _timing.CurTime;
+        }
+
     }
 }

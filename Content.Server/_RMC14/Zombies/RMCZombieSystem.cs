@@ -40,23 +40,24 @@ public sealed partial class RMCZombieSystem : EntitySystem
             {
                 DamageDict = new ()
                 {
-                    { "Blunt", -10 },
-                    { "Slash", -10 },
+                    { "Blunt", -20 },
+                    { "Slash", -20 },
                     { "Piercing", -10 },
-                    { "Shock", -2 }
+                    { "Shock", -2 },
+                    { "Asphyxiation", -20 }
                 }
             };
             zombieComponent.HealingOnBite = new()
             {
                 DamageDict = new ()
                 {
-                    { "Blunt", -20 },
-                    { "Slash", -20 },
-                    { "Piercing", -20 }
+                    { "Blunt", 0 },
+                    { "Slash", 0 },
+                    { "Piercing", 0 }
                 }
             };
             zombieComponent.PassiveHealingCritMultiplier = 1.5f;
-            zombieComponent.ZombieMovementSpeedDebuff = 0.80f;
+            zombieComponent.ZombieMovementSpeedDebuff = 0.60f;
         };
 
         var accentType = "RMCZombie";

@@ -8,6 +8,7 @@ using Content.Server._RMC14.Language.Systems;
 using Content.Server.Administration.Logs;
 using Content.Server.Administration.Managers;
 using Content.Server.Chat.Managers;
+using Content.Server.Database;
 using Content.Server.GameTicking;
 using Content.Server.Players.RateLimiting;
 using Content.Server.Speech.Components;
@@ -23,6 +24,7 @@ using Content.Shared._RMC14.Language.Systems;
 using Content.Shared._RMC14.Mentor.ImaginaryFriend;
 using Content.Shared._RMC14.Stun;
 using Content.Shared._RMC14.Xenonids;
+using Content.Shared._RMC14.Xenonids.Parasite;
 using Content.Shared.ActionBlocker;
 using Content.Shared.Administration;
 using Content.Shared.CCVar;
@@ -557,7 +559,7 @@ public sealed partial class ChatSystem : SharedChatSystem
             ("entityName", name),
             ("message", FormattedMessage.EscapeText(message)));
 
-        SendInVoiceRange(ChatChannel.LOOC, message, wrappedMessage, source, hideChat ? ChatTransmitRange.HideChat : ChatTransmitRange.Normal, player.UserId);
+        SendInVoiceRange(ChatChannel.LOOC, message, wrappedMessage, source, hideChat ? ChatTransmitRange.HideChat : ChatTransmitRange.Normal, player.UserId, true); // RNMC14
         _adminLogger.Add(LogType.Chat, LogImpact.Low, $"LOOC from {player:Player}: {message}");
     }
 
@@ -578,12 +580,21 @@ public sealed partial class ChatSystem : SharedChatSystem
             _chatManager.ChatMessageToOne(ChatChannel.Server, bannedMsg, bannedMsg, default, false, player.Channel);
             return;
         }
+
+        var isAdmin = false;
+        var title = "Admin";
+        var data = _adminManager.GetAdminData(player);
+        if (data != null)
+        {
+            isAdmin = true;
+            title = data.Title ?? "Admin";
+        }
         // RMC14
 
-        if (_adminManager.IsAdmin(player))
+        if (isAdmin)
         {
             wrappedMessage = Loc.GetString("chat-manager-send-admin-dead-chat-wrap-message",
-                ("adminChannelName", Loc.GetString("chat-manager-admin-channel-name")),
+                ("adminChannelName", title), //RMC14
                 ("userName", player.Channel.UserName),
                 ("message", FormattedMessage.EscapeText(message)));
             _adminLogger.Add(LogType.Chat, LogImpact.Low, $"Admin dead chat from {player:Player}: {message}");
@@ -653,7 +664,7 @@ public sealed partial class ChatSystem : SharedChatSystem
     /// <summary>
     ///     Sends a chat message to the given players in range of the source entity.
     /// </summary>
-    private void SendInVoiceRange(ChatChannel channel, string message, string wrappedMessage, EntityUid source, ChatTransmitRange range, NetUserId? author = null)
+    private void SendInVoiceRange(ChatChannel channel, string message, string wrappedMessage, EntityUid source, ChatTransmitRange range, NetUserId? author = null, bool hidePopup = false) // RNMC14
     {
         foreach (var (session, data) in GetRecipients(source, VoiceRange))
         {
@@ -669,7 +680,7 @@ public sealed partial class ChatSystem : SharedChatSystem
             else
                 RaiseLocalEvent(source, ref ev);
 
-            _chatManager.ChatMessageToOne(channel, ev.Message, ev.WrappedMessage, source, ev.EntHideChat, session.Channel, author: author);
+            _chatManager.ChatMessageToOne(channel, ev.Message, ev.WrappedMessage, source, ev.EntHideChat, session.Channel, author: author, hidePopup: hidePopup);
         }
 
         _replay.RecordServerMessage(new ChatMessage(channel, message, wrappedMessage, GetNetEntity(source), null, MessageRangeHideChatForReplay(range), speechStyleClass: CompOrNull<RMCSpeechBubbleSpecificStyleComponent>(source)?.SpeechStyleClass, repeatCheckSender: !HasComp<ChatRepeatIgnoreSenderComponent>(source)));
