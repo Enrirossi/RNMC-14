@@ -14,17 +14,22 @@
     children:
     - id: RMCLaserDesignator
     - id: RMCWhistle
-    - id: RMCBackpackRTO
     - id: CMHeadsetUSArmyCommand
+    - id: RNMCMinigun
+    - id: RNMCMinigunBackpack
+    - id: RNMCMinigunBelt
+      amount: 6
 
 - type: entityTable
   parent: CMLockerBase
   id: RMCClosetArmyLMGFill
   table: !type:AllSelector
     children:
-    - id: RMCWeaponLMGM60
-    - id: RMCMagazineLMGM60
-      amount: 5
+    - id: RNMCWeaponRifleM41AE2
+    - id: CMMagazineRifleM54CE2
+      amount: 3
+    - id: CMMagazineRifleM54CE2AP
+      amount: 1
 
 - type: entityTable
   parent: CMLockerBase
@@ -32,6 +37,9 @@
   table: !type:AllSelector
     children:
     - id: CMBootsArmyBlack
+    - id: CMHeadBeretCOLtCol
+    - id: CMCoatCOFormalBlack
+    - id: RMCJumpsuitCOUniformGray
     - id: RNMCGlassesBiMex
     - id: CMHeadsetUSArmyCommand
 
@@ -74,10 +82,13 @@
   id: RMCClosetArmyHeavyGunnerFill
   table: !type:AllSelector
     children:
-    - id: RNMCMinigun
-    - id: RNMCMinigunBackpack
-    - id: RNMCMinigunBelt
+    - id: RMCPVEArmorCaseM3SGO
+    - id: RMCSmartGunPVE
+    - id: RMCMagazineSmartGun
       amount: 6
+    - id: RMCPowerCellSmartgun
+    - id: RMCGlassesSmartGunSight
+    - id: CMBeltSmartGunOperator
 
 - type: entityTable
   parent: CMLockerBase

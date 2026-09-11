@@ -1,5 +1,5 @@
 - type: entity
-  parent: ColMarTechBaseAnchorable
+  parent: CMVendorMedical
   id: CMVendorMedicalArmy
   name: Army-Med Plus Plus
   description: Medical pharmaceutical dispenser. Provided by the US Army. Specifically designed to hold way more than the normal version, just for you.
@@ -40,6 +40,7 @@
       - id: CMTraumaKit10
       - id: CMOintment10
       - id: CMGauze10
+      - id: CMUSplintItem
     - name: Autoinjectors
       entries:
       - id: CMBicaridineAutoInjector
@@ -48,6 +49,7 @@
       - id: CMInaprovalineAutoInjector
       - id: CMKelotaneAutoInjector
       - id: CMTricordrazineAutoInjector
+      - id: AU14TramadolAutoInjector
     - name: Liquid bottles
       entries:
       - id: CMBottleBicaridine
@@ -62,6 +64,7 @@
       - id: CMPillCanisterDylovene
       - id: CMPillCanisterInaprovaline
       - id: CMPillCanisterKelotane
+      - id: AU14PillCanisterTramadol
     - name: Medical utilities
       entries:
       - id: CMDefibrillator
@@ -73,8 +76,6 @@
       - id: RMCGlassesMedicalHUDGlasses
       - id: CMStasisBagFolded
       - id: CMSyringe
-  - type: AccessReader
-    access: [["CMAccessArmyMedical"]]
 
 # Army Corpsman
 
