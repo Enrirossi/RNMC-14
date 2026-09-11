@@ -39,6 +39,8 @@ public sealed partial class ZombieComponent : Component
             {"Slash", 0.5},
             {"Piercing", 0.3},
             {"Blunt", 0.1},
+            {"Asphyxiation", 0},
+            {"Bloodloss", 0}
         }
     };
 
@@ -148,7 +150,7 @@ public sealed partial class ZombieComponent : Component
     {
         DamageDict = new()
         {
-            { "Slash", 13 },
+            { "Slash", 25 }, // RNMC
             { "Piercing", 7 },
             { "Structural", 10 }
         }
@@ -177,4 +179,19 @@ public sealed partial class ZombieComponent : Component
     /// </summary>
     [DataField("newBloodReagent", customTypeSerializer: typeof(PrototypeIdSerializer<ReagentPrototype>))]
     public string NewBloodReagent = "ZombieBlood";
+
+    [DataField]
+    public TimeSpan LastDiedAt; // RNMC14
+
+    [DataField]
+    public TimeSpan ReviveGraceTime = TimeSpan.FromSeconds(60); // RNMC14
+
+    [DataField]
+    public TimeSpan DespawnTime = TimeSpan.FromSeconds(180); // RNMC14
+
+    [DataField]
+    public TimeSpan LastHit; // RNMC14
+
+    [DataField]
+    public TimeSpan NoRegenOnHitTime = TimeSpan.FromSeconds(2); // RNMC14
 }

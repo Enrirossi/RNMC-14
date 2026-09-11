@@ -40,8 +40,8 @@ public sealed partial class RMCZombieSystem : EntitySystem
             {
                 DamageDict = new ()
                 {
-                    { "Blunt", -10 },
-                    { "Slash", -10 },
+                    { "Blunt", -20 },
+                    { "Slash", -20 },
                     { "Piercing", -10 },
                     { "Shock", -2 },
                     { "Asphyxiation", -20 }
